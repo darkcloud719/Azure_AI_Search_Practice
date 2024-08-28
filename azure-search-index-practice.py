@@ -91,7 +91,7 @@ def _create_index():
             SearchableField(name="category", type=SearchFieldDataType.String, facetable=True, filterable=True, sortable=True),
             SearchableField(name="tags", type=SearchFieldDataType.String, facetable=True, filterable=True, collection=True),
             SimpleField(name="parkingIncluded", type=SearchFieldDataType.Boolean, facetable=True, filterable=True, sortable=True),
-            SimpleField(name="LastRenovationDate", type=SearchFieldDataType.DateTimeOffset, facetable=True, filterable=True, sortable=True),
+            SimpleField(name="lastRenovationDate", type=SearchFieldDataType.DateTimeOffset, facetable=True, filterable=True, sortable=True),
             SimpleField(name="rating", type=SearchFieldDataType.Double, facetable=True, filterable=True, sortable=True),
             ComplexField(name="address", fields=[
                 SearchableField(name="streetAddress", type=SearchFieldDataType.String),
@@ -120,7 +120,7 @@ def _create_index():
         )
         scoring_profiles.append(scoring_profile)
         cors_options = CorsOptions(allowed_origins=["*"], max_age_in_seconds=60)
-        suggester = [{"name":"sg","source_fields":{"tags","address/city","address/country"}}]
+        suggester = [{'name':'sg','source_fields':['tags','address/city','address/country']}]
 
         index = SearchIndex(
             name=index_name,
@@ -352,6 +352,57 @@ def _run_a_suggest_query():
     except Exception as ex:
         logging.error(ex)
 
+def _run_semantic_queries():
+    try:
+        results = search_client.search(
+            query_type="semantic",
+            semantic_configuration_name="my-semantic-config",
+            search_text="What hotel has a good restaurant on site?",
+            select="hotelName,description,category",
+            query_caption="extractive"
+        )
+
+        for result in results:
+            for key,value in result.items():
+                print(f"{key}:{value}")
+            print("\n")
+
+            captions = result["@search.captions"]
+
+            if captions:
+                caption = captions[0]
+                if caption.highlights:
+                    print(f"Caption highlights:{caption.highlights}\n")
+                else:
+                    print(f"Caption text:{caption.text}\n")
+            print("\n\n")
+    except Exception as ex:
+        logging.error(ex)
+
+def _run_semantic_answers():
+
+    try:
+        results = search_client.search(
+            query_type="semantic",
+            semantic_configuration_name="my-semantic-config",
+            search_text="What hotel is in a historic building?",
+            select="hotelName,description,category",
+            query_caption="extractive",
+            query_answer="extractive"
+        )
+
+        pprint(type(results))
+
+        semantic_answers = results.get_answers()
+        print("<answers start>\n")
+        for answer in semantic_answers:
+            if answer.highlights:
+                print(f"Semantic Answer highlights:{answer.highlights}")
+            else:
+                print(f"Semantic Answer text:{answer.text}")
+        print("<answers end>\n")
+    except Exception as ex:
+        logging.error(ex)
 # test
 if __name__ == "__main__":
     # _get_index()
@@ -362,4 +413,6 @@ if __name__ == "__main__":
     # _run_a_specific()
     # _run_a_facet_query()
     # _run_look_up_document()
-    _run_a_suggest_query()
+    # _run_a_suggest_query()
+    # _run_semantic_queries()
+    _run_semantic_answers()
