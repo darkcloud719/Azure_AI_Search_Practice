@@ -198,12 +198,12 @@ def _run_semantic_answers():
             query_answer="extractive"
         )
 
-        with open("results.txt","w", encoding="utf-8") as file:
-            for result in results:
-                # file.write(f"{json.dumps(result,indent=4,ensure_ascii=False)}\n\n")
-                # result_str = json.dumps(result, indent=4, ensure_ascii=False)
-                # file.write(result_str+"\n\n")
-                file.write(f"{str(result)}\n\n")
+        # with open("results.txt","w", encoding="utf-8") as file:
+        #     for result in results:
+        #         file.write(f"{json.dumps(result,indent=4,ensure_ascii=False)}\n\n")
+        #         result_str = json.dumps(result, indent=4, ensure_ascii=False)
+        #         file.write(result_str+"\n\n")
+        #         file.write(f"{str(result)}\n\n")
                  
 
         semantic_answers = results.get_answers()

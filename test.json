@@ -1,0 +1,66 @@
+[
+    {
+        "@search.action": "upload",
+        "hotelId": "1",
+        "hotelName": "Luxury Retreat",
+        "description": "A serene and luxurious escape with world-class amenities. Enjoy a tranquil environment with exceptional service.",
+        "descriptionFr": "Un refuge serein et luxueux avec des commodités de classe mondiale. Profitez d'un environnement paisible avec un service exceptionnel.",
+        "category": "Luxury",
+        "tags": [
+            "spa",
+            "golf",
+            "resort",
+            "exclusive"
+        ],
+        "pakringIncluded": true,
+        "smokingAllowed": false,
+        "lastRenovationDate": "2015-05-15T00:00:00+00:00",
+        "rating": 4.8,
+        "location": {
+            "type": "Point",
+            "coordinates": [
+                -74.005941,
+                40.712784
+            ]
+        },
+        "address": {
+            "streetAddress": "123 Elite St.",
+            "city": "New York",
+            "stateProvince": "NY",
+            "postalCode": "10001",
+            "country": "USA"
+        }
+    },
+    {
+        "@search.action": "upload",
+        "hotelId": "2",
+        "hotelName": "Cozy Cabin",
+        "description": "A charming cabin nestled in the woods, perfect for a peaceful retreat. Features a cozy fireplace and stunning nature views.",
+        "descriptionFr": "Une charmante cabane nichée dans les bois, parfaite pour une retraite paisible. Dispose d'une cheminée chaleureuse et de vues imprenables sur la nature.",
+        "category": "Boutique",
+        "tags": [
+            "fireplace",
+            "nature",
+            "rustic",
+            "cabin"
+        ],
+        "pakringIncluded": true,
+        "smokingAllowed": true,
+        "lastRenovationDate": "2020-09-12T00:00:00+00:00",
+        "rating": 4.5,
+        "location": {
+            "type": "Point",
+            "coordinates": [
+                -105.278388,
+                40.017544
+            ]
+        },
+        "address": {
+            "streetAddress": "456 Forest Trail",
+            "city": "Boulder",
+            "stateProvince": "CO",
+            "postalCode": "80302",
+            "country": "USA"
+        }
+    }
+]
