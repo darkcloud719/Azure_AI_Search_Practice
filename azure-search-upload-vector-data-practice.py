@@ -3,7 +3,7 @@ import openai
 from tenacity import retry, wait_random_exponential, stop_after_attempt
 from azure.core.credentials import AzureKeyCredential
 from azure.search.documents import SearchClient
-from azure.search.documents.models import QueryType, QueryCaptionResult, QueryAnswerResult, VectorizedQuery
+from azure.search.documents.models import QueryType, QueryCaptionResult, QueryAnswerResult, VectorizedQuery, VectorizableTextQuery
 from azure.search.documents.indexes import SearchIndexClient, SearchIndexerClient
 from azure.search.documents.indexes.models import(
     SearchIndexerDataContainer,
@@ -37,7 +37,10 @@ from azure.search.documents.indexes.models import(
     VectorSearch,
     VectorSearchAlgorithmConfiguration,
     VectorSearchProfile,
-    HnswAlgorithmConfiguration
+    HnswAlgorithmConfiguration,
+    VectorSearchProfile,
+    # AzureOpenAIVectorizer,
+    # AzureOpenAIParameters
 )
 from dotenv import load_dotenv
 from typing import List
@@ -136,7 +139,7 @@ def _create_index():
             #             "metric":"cosine"
             #         }
             #     )
-            # ]
+            # ],
             algorithms=[
                 HnswAlgorithmConfiguration(
                     name="myHnsw"
@@ -148,6 +151,30 @@ def _create_index():
                     algorithm_configuration_name="myHnsw"
                 )
             ]
+            # algorithms=[
+            #     HnswAlgorithmConfiguration(
+            #         name="myHnsw"
+            #     ),
+            # ],
+            # profiles=[
+            #     VectorSearchProfile(
+            #         name="myHnswProfile",
+            #         algorithm_configuration="myHnsw",
+            #         vectorizer="myVectorizer"
+            #     )
+            # ],
+            # vectorizers=[
+            #     AzureOpenAIVectorizer(
+            #         name="myVectorizer",
+            #         azure_open_ai_parameters=AzureOpenAIParameters(
+            #             resource_uri=os.getenv("OPENAI_API_ENDPOINT"),
+            #             deployment_id=os.getenv("AZURE_OPENAI_DEPLOYMENT_FOR_ENBEDDINGS"),
+            #             model_name=os.getenv("AZURE_OPENAI_MODEL_NAME_FOR_EMBEDDINGS"),
+            #             api_key=os.getenv("OPENAI_API_KEY")
+            #         )
+            #     )
+            # ]
+            
         )
 
         index = SearchIndex(
@@ -233,10 +260,24 @@ def _upload_vector_data_to_index():
 #     embedding = openai.embeddings.create(input=["hello world"], model=os.getenv("AZURE_OPENAI_DEPLOYMENT_FOR_EMBEDDINGS"))
 #     pprint(embedding)
 
+# def corssfield_vector_search():
+
+#     vector_query = VectorizableTextQuery(text="",k_nearest_neighbors=3, fields=["contentVector,titleVector"])
+
+#     results = search_client.search(
+#         search_text=None,
+#         vector_queries=[vector_query],
+#         select=["title","content","category"],
+#     )
+
+#     for index, result in enumerate(results):
+#         for key, value in result.items():
+#             print(f"{key}:{value}")
+
 if __name__ == "__main__":
 
     # _get_text_vector()
     _delete_index()
     _create_index()
-    _embed_text_data_from_json()
+    # _embed_text_data_from_json()
     _upload_vector_data_to_index()
