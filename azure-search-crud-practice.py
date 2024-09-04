@@ -104,7 +104,7 @@ def _create_index():
             name=index_name,
             fields=fields,
             scoring_profiles=scoring_profiles,
-            cors_optios=cors_options,
+            cors_options=cors_options,
             suggesters=suggester,
             semantic_search=semantic_search
         )
