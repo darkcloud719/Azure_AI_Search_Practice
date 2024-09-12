@@ -219,13 +219,13 @@ def _run_semantic_answers():
         for result in results:
             for key, value in result.items():
                 print(f"{key}:{value}")
-                captions = result["@search.captions"]
-                if captions:
-                    caption = captions[0]
-                    if caption.highlights:
-                        print(f"Caption highlights:{caption.highlights}\n")
-                    else:
-                        print(f"Caption text:{caption.text}\n")
+            captions = result["@search.captions"]
+            if captions:
+                caption = captions[0]
+                if caption.highlights:
+                    print(f"Caption highlights:{caption.highlights}\n")
+                else:
+                    print(f"Caption text:{caption.text}\n")
         print("<results end>\n")
 
     except Exception as ex:
