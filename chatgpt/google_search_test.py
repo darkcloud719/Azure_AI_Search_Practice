@@ -95,7 +95,9 @@ def chat_g(sys_msg, user_msg, stream=False, verbose=False):
     ans = json.loads(check_google(hist, user_msg, stream=stream, verbose=verbose))
     if verbose:
         print(f"ans:{ans}")
-    print(ans)
+    # print(ans)
+
+    return ans
 
     
 
@@ -117,7 +119,7 @@ def main():
         print(reply)
         # for reply in chat_g(sys_msg, msg, stream=True, verbose=True):
         #     print(reply, end="")
-        # print("\n")
+        print("\n")
 
 if __name__ == "__main__":
     main()
