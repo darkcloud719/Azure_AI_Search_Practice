@@ -40,7 +40,7 @@ logging.basicConfig(
 app = func.FunctionApp(http_auth_level=func.AuthLevel.ANONYMOUS)
 app.register_blueprint(bp)
 
-
+# 
 @app.route(route="MergeTest")
 def MergeTest(req: func.HttpRequest) -> func.HttpResponse:
     logging.info("Python HTTP trigger function processed a request.")

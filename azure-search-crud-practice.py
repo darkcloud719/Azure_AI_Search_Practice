@@ -35,8 +35,20 @@ from azure.search.documents.indexes.models import(
 from dotenv import load_dotenv
 from typing import List
 from rich import print as pprint
+import logging
 
 load_dotenv()
+
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
+
+console_handler = logging.StreamHandler()
+console_handler.setLevel(logging.INFO)
+
+formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
+console_handler.setFormatter(formatter)
+
+logger.addHandler(console_handler)
 
 logging.basicConfig(
     level=logging.WARNING,
@@ -46,7 +58,7 @@ logging.basicConfig(
 
 service_endpoint = os.getenv("AZURE_SEARCH_SERVICE_ENDPOINT")
 key = os.getenv("AZURE_SEARCH_API_KEY")
-index_name = "test0819"
+index_name = "test1111"
 
 search_client = SearchClient(service_endpoint, index_name, AzureKeyCredential(key))
 search_index_client = SearchIndexClient(service_endpoint, AzureKeyCredential(key))
@@ -231,16 +243,30 @@ def _run_semantic_answers():
     except Exception as ex:
         logging.error(ex)
 
+def _update_index():
+
+    fields_to_delete = {"address", "rating"}
+
+    index = search_index_client.get_index("test1111")
+
+    index.suggesters = []
+
+    index.fields = [field for field in index.fields if field.name not in fields_to_delete]
+
+    search_index_client.create_or_update_index(index)
+
+    print("Fields deleted successfully!")
     
 
 if __name__ == "__main__":
 
     # _delete_index()
     # _create_index()
+    _update_index()
     # _upload_document()
     # _merge_document()
     # _run_a_semantic_query()
-    _run_semantic_answers()
+    # _run_semantic_answers()
 
 
 

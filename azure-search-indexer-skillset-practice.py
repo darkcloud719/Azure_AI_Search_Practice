@@ -8,7 +8,8 @@ from azure.search.documents.indexes.models import(
     SearchIndex,
     SimpleField,
     SearchFieldDataType,
-    EntityRecognitionSkill,
+    # EntityRecognitionSkill,
+    EntityRecognitionSkillVersion,
     SentimentSkill,
     InputFieldMappingEntry,
     OutputFieldMappingEntry,
@@ -73,6 +74,7 @@ def _create_index():
 
     try:
 
+        
         fields = [
             SimpleField(name="hotelId", type=SearchFieldDataType.String, key=True, filterable=True, sortable=True),
             SimpleField(name="hotelName", type=SearchFieldDataType.String, sortable=True),
@@ -80,10 +82,10 @@ def _create_index():
             SearchableField(name="descriptionFr", type=SearchFieldDataType.String, analyzer_name="fr.lucene"),
             SearchableField(name="category", type=SearchFieldDataType.String, facetable=True, filterable=True, sortable=True),
             SearchableField(name="tags", type=SearchFieldDataType.String, facetable=True, filterable=True, collection=True),
-            SimpleField(name="pakringIncluded", type=SearchFieldDataType.Boolean, facetable=True, filterable=True, sortable=True),
+            SimpleField(name="parkingIncluded", type=SearchFieldDataType.Boolean, facetable=True, filterable=True, sortable=True),
             SimpleField(name="smokingAllowed", type=SearchFieldDataType.Boolean, facetable=True, filterable=True, sortable=True),
             SimpleField(name="lastRenovationDate", type=SearchFieldDataType.DateTimeOffset, facetable=True, filterable=True, sortable=True),
-            SimpleField(name="rating", type=SearchFieldDataType.Double, facetable=True, filterable=True, srotable=True),
+            SimpleField(name="rating", type=SearchFieldDataType.Double, facetable=True, filterable=True, sortable=True),
             SimpleField(name="location", type=SearchFieldDataType.GeographyPoint),
             ComplexField(name="address", fields=[
                 SearchableField(name="streetAddress", type=SearchFieldDataType.String),
@@ -164,7 +166,6 @@ def _create_data_source():
     return data_source
 
 def _create_skillset():
-
     search_indexer_client.delete_skillset("shenghuai-skillset999")
     
     inp = InputFieldMappingEntry(name="text", source="/document/description")
