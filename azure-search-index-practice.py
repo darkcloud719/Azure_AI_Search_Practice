@@ -151,6 +151,37 @@ def _create_index():
     except Exception as ex:
         logger.error(ex)
 
+def _update_index():
+
+    try:
+        semantic_config = SemanticConfiguration(
+            name="my-semantic-config",
+            prioritized_fields=SemanticPrioritizedFields(
+                title_field=SemanticField(field_name="hotelName"),
+                keywords_fields=[SemanticField(field_name="tags")],
+                content_fields=[SemanticField(field_name="description")]
+            )
+        )
+
+        semantic_search = SemanticSearch(configurations=[semantic_config])
+
+        scoring_profiles:List[ScoringProfile] = []
+        scoring_profile = ScoringProfile(
+            name="MyProfile",
+            text_weights=TextWeights(weights={"tags":2,"description":1}),
+        )
+        scoring_profiles.append(scoring_profile)
+        
+        index = search_index_client.get_index(index_name)
+        index.scoring_profiles = scoring_profiles
+        index.semantic_search = semantic_search
+        
+        result = search_index_client.create_or_update_index(index)
+        logger.info(f"Index {result.name} updated.")
+
+    except Exception as ex:
+        logger.error(ex)
+
 def _upload_documents():
 
     try:
@@ -285,6 +316,7 @@ def _run_a_filter_query():
 
     try:
         results = search_client.search(
+            query_type=QueryType.SIMPLE,
             search_text="hotels",
             select="hotelId,hotelName,rating",
             fileter="rating gt 4",
@@ -303,6 +335,7 @@ def _run_a_specific():
 
     try:
         results = search_client.search(
+            query_type=QueryType.SIMPLE,
             search_text="hotel",
             search_fields=["description"],
             select="hotelId,hotelName,description"
