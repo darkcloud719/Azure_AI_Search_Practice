@@ -41,17 +41,28 @@ load_dotenv()
 # logging.basicConfig(level=logging.ERROR, format="%(asctime)s - %(levelname)s - %(message)s")
 # https://www.youtube.com/watch?v=pxuXaaT1u3k
 # log file highlighting
-logging.basicConfig(
-    level=logging.WARNING,
-    format="%(asctime)s - %(levelname)s - %(message)s",
-    datefmt="%Y-%m-%d %H:%M:%S",
-    # filename="basic1.log"
-)
+# logging.basicConfig(
+#     level=logging.WARNING,
+#     format="%(asctime)s - %(levelname)s - %(message)s",
+#     datefmt="%Y-%m-%d %H:%M:%S",
+#     # filename="basic1.log"
+# )
 # logging.debug("This is a debug message.")
 # logging.info("This is an info message.")
 # logging.warning("This is a warning message.")
 # logging.error("This is an error message.")
 # logging.critical("This is a critical message.")
+
+logger = logging.getLogger(__name__)
+logger.setLevelt(logging.INFO)
+
+console_handler = logging.StreamHandler()
+console_handler.setLevel(logging.INFO)
+
+formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
+console_handler.setFormatter(formatter)
+
+logger.addHandler(console_handler)
 
 service_endpoint = os.getenv("AZURE_SEARCH_SERVICE_ENDPOINT")
 key = os.getenv("AZURE_SEARCH_API_KEY")
@@ -65,6 +76,7 @@ def _get_index():
 
     try:
         result = search_index_client.get_index(index_name)
+        logger.info(f"Index {index_name} deleted.")
         print(f"Index {index_name} existed")
     except Exception as ex:
         logging.error(ex)
@@ -74,6 +86,7 @@ def _delete_index():
 
     try:
         search_index_client.delete_index(index_name)
+        logger.info(f"Index {index_name} deleted.")
         print(f"Index {index_name} deleted")
     except Exception as ex:
         logging.error(ex)
@@ -127,15 +140,16 @@ def _create_index():
             fields=fields,
             scoring_profiles=scoring_profiles,
             cors_options=cors_options,
-            suggesters=suggester,
-            semantic_search=semantic_search
+            # suggesters=suggester,
+            # semantic_search=semantic_search
         )
 
         result = search_index_client.create_or_update_index(index)
+        logger.info(f"index {result.name} created.")
         print(f"{result.name} created")
 
     except Exception as ex:
-        logging.error(ex)
+        logger.error(ex)
 
 def _upload_documents():
 
@@ -220,10 +234,11 @@ def _upload_documents():
         ]
 
         result = search_client.upload_documents(documents=documents)
+        logger.info(f"Uploaded of new document succeeded: {result[0].succeeded}")
         print(f"Uploaded of new document succeeded: {result[0].succeeded}")
     
     except Exception as ex:
-        logging.error(ex)
+        logger.error(ex)
 
 def _run_first_query():
 
@@ -235,6 +250,7 @@ def _run_first_query():
             include_total_count=True
         )      
 
+        logger.info(f"Total Document Matching Query: {results.get_count()}")
         print(f"Total Documents Matching Querying {results.get_count()}")
         
         for result in results:
@@ -242,18 +258,20 @@ def _run_first_query():
                 print(f"{key}:{value}")
             print("\n")
     except Exception as ex:
-        logging.error(ex)
+        logger.error(ex)
 
 def _run_a_term_query():
 
     try:
         results = search_client.search(
-            query_type="simple",
-            search_text="wifi",
-            select="hotelName,description,tags",
+            query_type=QueryType.SIMPLE,
+            search_text="24 hours hotel",
+            select="hotelName,tags",
+            search_fields=["tags","description"],
+            scoring_profile="MyProfile",
             include_total_count=True
         )
-
+        logger.info(f"Total Documents Matching Querying {results.get_count()}")
         print(f"Total Documents Matching Querying {results.get_count()}")
         for result in results:
             for key, value in result.items():
@@ -261,7 +279,7 @@ def _run_a_term_query():
             print("\n")
 
     except Exception as ex:
-        logging.error(ex)
+        logger.error(ex)
 
 def _run_a_filter_query():
 
