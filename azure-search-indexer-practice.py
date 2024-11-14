@@ -53,12 +53,13 @@ service_endpoint = os.getenv("AZURE_SEARCH_SERVICE_ENDPOINT")
 key = os.getenv("AZURE_SEARCH_API_KEY")
 index_name = "test1113"
 indexer_name = "test1113-indexer"
-data_source_name = "shenghuai-datasource1113"
+data_source_name = "shenghuai-datasource-1113"
 connection_string = os.getenv("AZURE_STORAGE_CONNECTION_STRING")
 
 def _delete_index():
 
     try:
+
         with SearchIndexClient(service_endpoint, AzureKeyCredential(key)) as search_index_client:
             search_index_client.delete_index(index_name)
             logger.info(f"Index {index_name} deleted")
@@ -68,10 +69,11 @@ def _delete_index():
 def _create_index():
 
     try:
+
         fields = [
             SimpleField(name="id", type=SearchFieldDataType.String, key=True),
             SearchableField(name="title", type=SearchFieldDataType.String),
-            SearchableField(name="category", type=SearchFieldDataType.String, filterable=True),
+            SearchableField(name="category", type=SearchFieldDataType.String, filterable=True, collection=True),
             SearchableField(name="content", type=SearchFieldDataType.String)
         ]
 
@@ -91,6 +93,7 @@ def _create_index():
             name="MyProfile",
             text_weights=TextWeights(weights={"content":1.5})
         )
+
         scoring_profiles.append(scoring_profile)
         cors_options = CorsOptions(allowed_origins=["*"], max_age_in_seconds=60)
         suggest = [{"name":"sg","source_fields":["title","category"]}]
@@ -109,7 +112,7 @@ def _create_index():
         logger.error(ex)
 
 def _create_data_source():
-    
+
     try:
 
         container = SearchIndexerDataContainer(name="shenghuaitestcontainer")
@@ -123,7 +126,8 @@ def _create_data_source():
 
         with SearchIndexerClient(service_endpoint, AzureKeyCredential(key)) as search_indexer_client:
             search_indexer_client.create_data_source_connection(data_source_connection)
-            logger.info(f"Data source connection created: {data_source_connection.name}")
+            logger.info(f"Data source {data_source_name} created")
+
     except Exception as ex:
         logger.error(ex)
 
@@ -139,7 +143,7 @@ def _create_indexer():
         parameters = IndexingParameters(configuration=configuration)
 
         indexer = SearchIndexer(
-            name="shenghuai-indexer1113",
+            name=indexer_name,
             data_source_name=data_source_name,
             target_index_name=index_name,
             parameters=parameters
@@ -147,20 +151,24 @@ def _create_indexer():
 
         with SearchIndexerClient(service_endpoint, AzureKeyCredential(key)) as search_indexer_client:
             search_indexer_client.create_indexer(indexer)
-            # result = search_indexer_client.get_indexer(indexer.name)
-            # search_indexer_client.run_indexer(indexer_name)
+
             logger.info(f"Indexer {indexer.name} created")
+
     except Exception as ex:
         logger.error(ex)
 
 def _simple_query():
 
     try:
+
         with SearchClient(service_endpoint, index_name, AzureKeyCredential(key)) as search_client:
             results = search_client.search(
-                query_type=QueryType.SIMPLE,
-                search_text="gateway",
-                include_total_count=True
+                query_type = QueryType.SIMPLE,
+                search_fields=["title"],
+                # search_text = "I need an Azure service that can help me search data.",
+                search_text="Computer",
+                include_total_count=True,
+                top=5
             )
 
             logger.info(f"Total count: {results.get_count()}")
@@ -177,10 +185,11 @@ def _simple_query():
 def _full_query():
 
     try:
+
         with SearchClient(service_endpoint, index_name, AzureKeyCredential(key)) as search_client:
             results = search_client.search(
-                query_type=QueryType.FULL,
-                search_text="title:gateway",
+                query_type = QueryType.FULL,
+                search_text = "title:'Azure' AND category:'Management'",
                 include_total_count=True
             )
 
@@ -191,6 +200,81 @@ def _full_query():
                     logger.info(f"{result_key}:{value}")
 
                 print("\n\n")
+    except Exception as ex:
+        logger.error(ex)
+
+def _update_index():
+
+    try:
+
+        semantic_config = SemanticConfiguration(
+            name="my-semantic-config",
+            prioritized_fields=SemanticPrioritizedFields(
+                title_field=SemanticField(field_name="title"),
+                keywords_fields=[SemanticField(field_name="category")],
+                content_fields=[SemanticField(field_name="content")]
+            )
+        )
+        
+        semantic_search = SemanticSearch(configurations=[semantic_config])
+
+        scoring_profiles:List[ScoringProfile] = []
+        scoring_profile = ScoringProfile(
+            name="MyProfile",
+            text_weights=TextWeights(weights={"content":1.5})
+        )
+        scoring_profiles.append(scoring_profile)
+        cors_options = CorsOptions(allowed_origins=["*"], max_age_in_seconds=60)
+        suggester  = [{"name":"sg","source_fields":["title","category"]}]
+
+        with SearchIndexClient(service_endpoint, AzureKeyCredential(key)) as search_index_client:
+            index = search_index_client.get_index(index_name)
+            index.semantic_search = semantic_search
+            index.cors_options = cors_options
+            index.scoring_profiles = scoring_profiles
+
+            result = search_index_client.create_or_update_index(index)
+    except Exception as ex:
+        logger.error(ex)
+
+def _semantic_query():
+
+    try:
+        with SearchClient(service_endpoint, index_name, AzureKeyCredential(key)) as search_client:
+            results = search_client.search(
+                query_type = QueryType.SEMANTIC,
+                # search_fields=["title"],
+                search_text = "Who is Nick?",
+                include_total_count=True,
+                semantic_configuration_name = "my-semantic-config",
+                query_caption = "extractive",
+                query_answer = "extractive"
+            )
+
+            logger.info(f"Total count: {results.get_count()}")
+
+            # semantic_answers = results.get_answers()
+            # logger.info("<answers start>")
+            # for answer in semantic_answers:
+            #     if answer.highlights:
+            #         logger.info(f"Semantic Answer highlights:{answer.highlights}")
+            #     else:
+            #         logger.info(f"Semantic Answer text:{answer.text}")
+            # logger.info("<answers end")
+
+            for result in results:
+                for result_key, value in result.items():
+                    logger.info(f"{result_key}:{value}")
+                print("\n\n")
+
+                # captions = result["@search.captions"]
+
+                # if captions:
+                #     caption = caption[0]
+                #     if caption.highlights:
+                #         logger.info(f"Caption highlights:{caption.highlights}")
+                #     else:
+                #         logger.info(f"Caption text:{caption.text}")
 
     except Exception as ex:
         logger.error(ex)
@@ -201,4 +285,6 @@ if __name__ == "__main__":
     # _create_data_source()
     # _create_indexer()
     # _simple_query()
-    _full_query()
+    # _full_query()
+    # _update_index()
+    _semantic_query()

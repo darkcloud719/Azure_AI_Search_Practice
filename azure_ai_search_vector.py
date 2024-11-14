@@ -1,4 +1,4 @@
-import os,json,logging,sys
+import os,json,logging,sys,openai
 from openai import AzureOpenAI
 from dotenv import load_dotenv
 from tenacity import retry, wait_random_exponential, stop_after_attempt
@@ -48,11 +48,22 @@ from rich import print as pprint
 
 load_dotenv()
 
-logging.basicConfig(
-    level=logging.WARNING,
-    format="%(asctime)s - %(levelname)s - %(message)s",
-    datefmt="%Y-%m-%d %H:%M:%S"
-)
+# logging.basicConfig(
+#     level=logging.WARNING,
+#     format="%(asctime)s - %(levelname)s - %(message)s",
+#     datefmt="%Y-%m-%d %H:%M:%S"
+# )
+
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
+
+console_handler = logging.StreamHandler()
+console_handler.setLevel(logging.INFO)
+
+formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
+console_handler.setFormatter(formatter)
+
+logger.addHandler(console_handler)
 
 assert os.getenv("OPENAI_API_KEY"), "OPENAI_API_KEY is not set in .env file"
 assert os.getenv("OPENAI_API_VERSION"), "OPENAI_API_VERSION is not set in .env file"
@@ -76,12 +87,24 @@ service_endpoint = os.getenv("AZURE_SEARCH_SERVICE_ENDPOINT")
 key = os.getenv("AZURE_SEARCH_API_KEY")
 index_name = "test0905"
 
+openai.api_endpoint = azure_openai_endpoint
+openai.api_key = azure_openai_key
+openai.api_version = azure_openai_api_version
+openai.api_type = "azure"
+
 client = AzureOpenAI(
     azure_endpoint=azure_openai_endpoint,
     api_key=azure_openai_key,
     api_version=azure_openai_api_version,
 )
 
+def delete_index():
+    try:
+        with SearchIndexClient(service_endpoint, AzureKeyCredential(key)) as search_index_client:
+            search_index_client.delete_index(index_name)
+            logger.info(f"Index {index_name} deleted")
+    except Exception as ex:
+        logger.error(ex)
 
 def create_index():
     try:
