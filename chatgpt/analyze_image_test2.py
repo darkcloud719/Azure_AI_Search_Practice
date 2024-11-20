@@ -12,17 +12,19 @@ def encode_image(image_path):
     with open(image_path, "rb") as image_file:
         return base64.b64encode(image_file.read()).decode("utf-8")
 
-def main(img):
+def main():
     openai.api_key = os.getenv("OPENAI_API_KEY")
     openai.azure_endpoint = os.getenv("AZURE_OPENAI_ENDPOINT")
     openai.api_version = os.getenv("OPENAI_API_VERSION")
     openai.api_type = "azure"
 
+    img = encode_image("cat2.jpg")
+
     response = openai.chat.completions.create(
         model = os.getenv("AZURE_OPENAI_DEPLOYMENT_FOR_VISION"),
         messages = [
             {"role":"user","content":[
-                {"type":"text","text":"What is in the picture?"},
+                {"type":"text","text":"Please describe this image."},
                 {"type":"image_url","image_url":
                     {"url": f"data:image/jpeg;base64,{img}", "detail": "high"}
                 }
@@ -35,7 +37,8 @@ def main(img):
 
 if __name__ == "__main__":
     load_dotenv()
-    img = encode_image("cat2.jpg")
-    main(img)
+    main()
+    # img = encode_image("cat2.jpg")
+    # main(img)
 
 
